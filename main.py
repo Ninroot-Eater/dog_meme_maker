@@ -5,8 +5,7 @@ from PIL import Image, ImageFont, ImageDraw
 import os
 
 
-def draw_caption(save_name, text):
-    files = os.listdir(os.path.join(os.getcwd(), "downloads", "images"))
+def draw_caption(save_name, text, im_dir):
     font = ImageFont.truetype("font.ttf", 10)
 
     base = Image.new("RGB", (100, 20), (0, 0, 0))
@@ -17,10 +16,8 @@ def draw_caption(save_name, text):
 
     draw = ImageDraw.Draw(base)
     draw.text((base.width / 2, base.height / 2), text, fill=(255, 255, 255), anchor="ms", font=font)
-
-    idx = 0
-    for i in files:
-        im = Image.open(os.path.join(os.path.join(os.getcwd(), "downloads", "images"), i), "r")
+    for i in os.listdir(im_dir):
+        im = Image.open(os.path.join(im_dir, i), "r")
         base_width = int(im.width / 3)
 
         wpercent = (base_width / float(base.size[0]))
@@ -29,12 +26,14 @@ def draw_caption(save_name, text):
         im.paste(pasted_base,
                  (int((im.width / 2) - (pasted_base.width / 2)), int(im.height / 10 - pasted_base.height / 2)))
 
-        im.save(os.path.join("downloads", "captioned_images", str(idx) + save_name))
+        im.save(os.path.join("downloads", "captioned_images", save_name))
 
-        idx += 1
 
 
 def main():
+    if "captioned_images" not in  os.listdir(os.path.join(".", "downloads")):
+        os.mkdir(os.path.join(".", "downloads", "captioned_images"))
+
     configs = json.loads(open("config.json", "r").read())
     records = configs["records"]
 
@@ -48,9 +47,8 @@ def main():
             "keywords": i["keyword"],
             "limit": limit,
             "size": ">640*480",
-            "image_directory": "images",
             "format": "jpg"
         })
-        draw_caption(i["keyword"]+".jpg", i["caption"])
+        draw_caption(i["keyword"]+".jpg", i["caption"], os.path.join(os.getcwd(), "downloads", i["keyword"]))
 
 main()
